@@ -292,6 +292,7 @@ if(BUILD_JAVA)
         ./src/main/java/com/intel/genomicsdb/spark/GenomicsDBJavaSparkFactory.java
         ./src/main/java/com/intel/genomicsdb/spark/GenomicsDBPartitionInfo.java
         ./src/main/java/com/intel/genomicsdb/spark/GenomicsDBRecordReader.java
+	./src/main/java/com/intel/genomicsdb/spark/GenomicsDBQueryInfo.java
         ./src/main/java/com/intel/genomicsdb/Constants.java
         ./src/main/java/com/intel/genomicsdb/GenomicsDBLibLoader.java
         ./src/main/scala/com/intel/genomicsdb/GenomicsDBContext.scala
