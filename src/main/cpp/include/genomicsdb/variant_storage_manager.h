@@ -32,6 +32,8 @@
 #include "tiledb_storage.h"
 #include "timer.h"
 
+#include <fcntl.h>
+
 //Exceptions thrown 
 class VariantStorageManagerException : public std::exception {
   public:
@@ -206,19 +208,25 @@ class VariantArrayInfo
 };
 
 /*
- * Wrapper class around TileDB C API - shields GenomicsDB from changes in
- * core
+ * GenomicsDB wrappers around TileDB C API and for filesystem agnostic functionality.
  */
 int initialize_workspace(TileDB_CTX **ptiledb_ctx, const std::string& workspace, const bool overwrite);
 int finalize_workspace(TileDB_CTX *tiledb_ctx);
 
 bool workspace_exists(const std::string& workspace);
 bool array_exists(const std::string& workspace, const std::string& array_name);
+std::vector<std::string> get_array_names(const std::string& workspace);
+/**
+ * buffer is malloc'ed and has to be freed by calling function
+ */
+int read_entire_file(const std::string& filename, void **buffer, size_t *length);
 
 int read_file(const std::string& filename, off_t offset, void *buffer, size_t length);
-int write_file(const std::string& filename, void *buffer, size_t length, const bool overwrite);
+int write_file(const std::string& filename, const void *buffer, size_t length, const bool overwrite);
 int delete_file(const std::string& file);
 int move_across_filesystems(const std::string& src, const std::string& dest);
+
+int create_temp_filename(char *path, size_t path_length);
 
 class VariantStorageManager
 {

@@ -501,7 +501,7 @@ void tiledb_close(TileDB_CTX *tiledb_ctx)
   VERIFY_OR_THROW(tiledb_ctx_finalize(tiledb_ctx) == TILEDB_OK && "Could not finalize TileDB");
 }
 
-/*
+/**
  * Returns 0 when workspace is created
  *        -1 when path is not a directory
  *        -2 when workspace could not be created
@@ -570,6 +570,55 @@ bool array_exists(const std::string& workspace, const std::string& array_name)
   return exists;
 }
 
+std::vector<std::string> get_array_names(const std::string& workspace)
+{
+  TileDB_CTX *tiledb_ctx;
+  tiledb_setup(&tiledb_ctx, workspace);
+  std::vector<std::string> array_names;
+  std::vector<std::string> dirs = get_dirs(tiledb_ctx, workspace);
+  if (!dirs.empty()) {
+    for (std::vector<std::string>::iterator dir = dirs.begin() ; dir != dirs.end(); dir++) {
+      std::string path(*dir);
+      if (is_array(tiledb_ctx, path)) {
+	size_t pos = path.find_last_of("\\/");
+	if (pos == std::string::npos) {
+	  array_names.push_back(path);
+	} else {
+	  array_names.push_back(path.substr(pos+1));
+	}
+      }
+    }
+  }
+  tiledb_close(tiledb_ctx);
+  return array_names;
+}
+
+int read_entire_file(const std::string& filename, void **buffer, size_t *length)
+{
+  TileDB_CTX *tiledb_ctx;
+  tiledb_setup(&tiledb_ctx, parent_dir(filename));
+  if (is_dir(tiledb_ctx, filename)) {
+    tiledb_close(tiledb_ctx);
+    VERIFY_OR_THROW(false && "Given path to filename is a directory");
+  }
+  if (!is_file(tiledb_ctx, filename) || file_size(tiledb_ctx, filename) == 0) {
+    tiledb_close(tiledb_ctx);
+    return -1;
+  }
+  size_t size = file_size(tiledb_ctx, filename);
+  *length = size;
+  *buffer = (char *)malloc(size+1);
+  if (*buffer == NULL) {
+    tiledb_close(tiledb_ctx);
+    VERIFY_OR_THROW(false && "Out-of-memory exception while allocating memory");
+  }
+  memset(*buffer, 0, size+1);
+  int rc = read_from_file(tiledb_ctx, filename, 0, *buffer, size);
+  rc |= close_file(tiledb_ctx, filename);
+  tiledb_close(tiledb_ctx);
+  return rc;
+}
+
 int read_file(const std::string& filename, off_t offset, void *buffer, size_t length)
 {
   TileDB_CTX *tiledb_ctx;
@@ -583,11 +632,13 @@ int read_file(const std::string& filename, off_t offset, void *buffer, size_t le
     return -1;
   }
   int rc = read_from_file(tiledb_ctx, filename, offset, buffer, length);
+  rc |= close_file(tiledb_ctx, filename);
+
   tiledb_close(tiledb_ctx);
   return rc;
 }
 
-int write_file(const std::string& filename, void *buffer, size_t length, const bool overwrite)
+int write_file(const std::string& filename, const void *buffer, size_t length, const bool overwrite)
 {
   TileDB_CTX *tiledb_ctx;
   tiledb_setup(&tiledb_ctx, parent_dir(filename));
@@ -604,6 +655,8 @@ int write_file(const std::string& filename, void *buffer, size_t length, const b
     }
   }
   rc = write_to_file(tiledb_ctx, filename, buffer, length);
+  rc |= close_file(tiledb_ctx, filename);
+
   tiledb_close(tiledb_ctx);
   return rc;
 }
@@ -635,8 +688,7 @@ int move_across_filesystems(const std::string& src, const std::string& dest)
     tiledb_close(tiledb_ctx);
     VERIFY_OR_THROW(false && "Could not read from file");
   }
-
-  delete_file(tiledb_ctx, src);
+  close_file(tiledb_ctx, src);
   tiledb_close(tiledb_ctx);
 
   tiledb_setup(&tiledb_ctx, parent_dir(dest));
@@ -645,8 +697,29 @@ int move_across_filesystems(const std::string& src, const std::string& dest)
     VERIFY_OR_THROW(false && "Given path to dest is a directory");
   }
   int rc = write_to_file(tiledb_ctx, dest, buffer, size);
+  rc |= close_file(tiledb_ctx, dest);
   tiledb_close(tiledb_ctx);
   return rc;
+}
+
+int create_temp_filename(char *path, size_t path_length) {
+  memset(path, 0, path_length);
+  const char *tmp_dir;
+  if (getenv("TMPDIR")) {
+    tmp_dir = getenv("TMPDIR");
+  } else {
+    tmp_dir = P_tmpdir; // defined in stdio
+  }
+  char tmp_filename_pattern[64];
+  sprintf(tmp_filename_pattern, "%s/GenomicsDBXXXXXX", tmp_dir);
+  int tmp_fd = mkostemp(tmp_filename_pattern, O_APPEND|O_CLOEXEC|O_SYNC);
+  char tmp_proc_lnk[64];
+  sprintf(tmp_proc_lnk, "/proc/self/fd/%d", tmp_fd);
+  if (readlink(tmp_proc_lnk, path, path_length-1) < 0) {
+    throw VariantStorageManagerException(std::string("Error while creating temp filename; ") + strerror(errno));
+  }
+  close(tmp_fd);
+  return 0;
 }
 
 //VariantStorageManager functions

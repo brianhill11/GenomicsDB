@@ -74,6 +74,15 @@ public class GenomicsDBFeatureReader<T extends Feature, SOURCE> extends Genomics
     }
 
     /**
+     * List the GenomicsDB arrays in the given workspace
+     * @param workspace
+     * @return names of GenomicsDB arrays if they exist
+     */
+    public static String[] listGenomicsDBArrays(final String workspace) {
+        return jniListTileDBArrays(workspace);
+    }
+
+    /**
      * Constructor
      *
      * @param exportConfiguration query parameters
@@ -92,7 +101,7 @@ public class GenomicsDBFeatureReader<T extends Feature, SOURCE> extends Genomics
         this.loaderJSONFile = loaderJSONFile.orElse("");
         List<String> chromosomeIntervalArrays = this.exportConfiguration.hasArrayName() ? new ArrayList<String>() {{
             add(exportConfiguration.getArrayName());
-        }} : getArrayListFromWorkspace(new File(exportConfiguration.getWorkspace()), Optional.empty());
+        }} : getArrayListFromWorkspace(exportConfiguration.getWorkspace(), Optional.empty());
         if (chromosomeIntervalArrays == null || chromosomeIntervalArrays.size() < 1)
             throw new IllegalStateException("There is no genome data stored in the database");
         generateHeadersForQuery(chromosomeIntervalArrays.get(0));
@@ -175,7 +184,7 @@ public class GenomicsDBFeatureReader<T extends Feature, SOURCE> extends Genomics
     }
 
     private List<String> resolveChromosomeArrayFolderList(final Optional<Coordinates.ContigInterval> chromosome) {
-        List<String> chromosomeIntervalArraysNames = getArrayListFromWorkspace(new File(exportConfiguration.getWorkspace()), chromosome);
+        List<String> chromosomeIntervalArraysNames = getArrayListFromWorkspace(exportConfiguration.getWorkspace(), chromosome);
         chromosomeIntervalArraysNames.sort(new ChrArrayFolderComparator());
         return resolveIntervalsPerArray(chromosomeIntervalArraysNames);
     }
@@ -250,8 +259,8 @@ public class GenomicsDBFeatureReader<T extends Feature, SOURCE> extends Genomics
         return tmpQueryJSONFile;
     }
 
-    private List<String> getArrayListFromWorkspace(final File workspace, Optional<Coordinates.ContigInterval> chromosome) {
-        List<String> folders = Arrays.asList(workspace.list((current, name) -> new File(current, name).isDirectory()));
+    private List<String> getArrayListFromWorkspace(final String workspace_str, Optional<Coordinates.ContigInterval> chromosome) {
+	List<String> folders = Arrays.asList(listGenomicsDBArrays(workspace_str));
         return chromosome.map(contigInterval -> folders.stream().filter(name -> {
             String[] ref = name.split(CHROMOSOME_FOLDER_DELIMITER_SYMBOL_REGEX);
             throwExceptionIfArrayFolderRefIsWrong(ref);
