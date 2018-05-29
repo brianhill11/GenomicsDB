@@ -112,6 +112,10 @@ public class GenomicsDBInputSplit extends InputSplit implements Writable {
    *                   in GenomicsDBConfiguration or hadoopConfiguration in SparkContext
    */
   public String[] getLocations() throws IOException, InterruptedException {
+    if (hosts == null)
+    {
+      return new String[]{};
+    }
     return hosts;
   }
 }
