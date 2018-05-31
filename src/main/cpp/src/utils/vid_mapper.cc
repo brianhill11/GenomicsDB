@@ -22,12 +22,13 @@
 
 #include <libgen.h>
 #include "vid_mapper.h"
-#include "tiledb.h"
 #include "json_config.h"
 #include "known_field_info.h"
+#include "tiledb.h"
+#include "tiledb_utils.h"
 #include "vcf.h"
 #include "variant_field_data.h"
-#include "variant_storage_manager.h"
+
 
 std::unordered_map<std::string, int> VidMapper::m_length_descriptor_string_to_int = std::unordered_map<std::string, int>({
     {"BCF_VL_FIXED", BCF_VL_FIXED},
@@ -710,7 +711,7 @@ rapidjson::Document parse_json_file(const std::string& filename) {
   VERIFY_OR_THROW(filename.length() && "vid/callset mapping file unspecified");
   char *json_buffer;
   size_t json_buffer_length;
-  if (read_entire_file(filename, (void **)&json_buffer, &json_buffer_length) != TILEDB_OK || !json_buffer || json_buffer_length == 0) {
+  if (TileDBUtils::read_entire_file(filename, (void **)&json_buffer, &json_buffer_length) != TILEDB_OK || !json_buffer || json_buffer_length == 0) {
     if (json_buffer) {
       free(json_buffer);
       throw FileBasedVidMapperException((std::string("Could not open vid/callset mapping file \"")+filename+"\"").c_str());
@@ -1549,7 +1550,7 @@ void FileBasedVidMapper::write_partition_loader_json_file(const std::string& ori
   rapidjson::StringBuffer buffer;
   rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
   json_doc.Accept(writer);
-  if (write_file(output_filename, buffer.GetString(), strlen(buffer.GetString()), true)) {
+  if (TileDBUtils::write_file(output_filename, buffer.GetString(), strlen(buffer.GetString()), true)) {
       throw FileBasedVidMapperException(std::string("Could not write to partitioned loader JSON file ")+output_filename);
   }
 }

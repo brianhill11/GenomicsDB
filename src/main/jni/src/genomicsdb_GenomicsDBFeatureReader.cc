@@ -22,7 +22,6 @@
 
 #include "genomicsdb_jni_exception.h"
 #include "genomicsdb_GenomicsDBFeatureReader.h"
-#include "variant_storage_manager.h"
 
 #include <vector>
 #include <string>

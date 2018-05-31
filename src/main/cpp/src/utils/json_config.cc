@@ -27,7 +27,7 @@
 
 #include <zlib.h>
 #include "json_config.h"
-#include "variant_storage_manager.h"
+#include "tiledb_utils.h"
 
 #define VERIFY_OR_THROW(X) if(!(X)) throw RunConfigException(#X);
 
@@ -1051,8 +1051,8 @@ void JSONVCFAdapterConfig::read_from_file(const std::string& filename,
   // Move m_vcf_header_filename contents to a temporary local file for non-local URIs
   if (m_vcf_header_filename.find("://") != std::string::npos) {
     char tmp_filename[PATH_MAX];
-    create_temp_filename(tmp_filename, PATH_MAX);
-    move_across_filesystems(m_vcf_header_filename, tmp_filename);
+    TileDBUtils::create_temp_filename(tmp_filename, PATH_MAX);
+    TileDBUtils::move_across_filesystems(m_vcf_header_filename, tmp_filename);
     m_vcf_header_filename.assign(tmp_filename);
     is_tmp_vcf_header_filename = true;
   }

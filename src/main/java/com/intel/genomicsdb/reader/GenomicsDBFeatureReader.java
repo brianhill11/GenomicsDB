@@ -39,12 +39,13 @@ import java.util.*;
 
 import static com.intel.genomicsdb.Constants.CHROMOSOME_FOLDER_DELIMITER_SYMBOL_REGEX;
 import static java.util.stream.Collectors.toList;
+import static com.intel.genomicsdb.GenomicsDBUtilsJni.*;
 
 /**
  * A reader for GenomicsDB that implements {@link htsjdk.tribble.FeatureReader}
  * Currently, the reader only return {@link htsjdk.variant.variantcontext.VariantContext}
  */
-public class GenomicsDBFeatureReader<T extends Feature, SOURCE> extends GenomicsDBFeatureReaderJni implements FeatureReader<T> {
+public class GenomicsDBFeatureReader<T extends Feature, SOURCE> implements FeatureReader<T> {
     private String loaderJSONFile;
     private String queryJsonFileName = null;
     private GenomicsDBExportConfiguration.ExportConfiguration exportConfiguration;
@@ -52,16 +53,6 @@ public class GenomicsDBFeatureReader<T extends Feature, SOURCE> extends Genomics
     private FeatureCodecHeader featureCodecHeader;
     private List<String> sequenceNames;
     private Map<String, Coordinates.ContigInterval> intervalsPerArray = new HashMap<>();
-
-
-    static {
-        try {
-            boolean loaded = GenomicsDBLibLoader.loadLibrary();
-            if (!loaded) throw new GenomicsDBException("Could not load genomicsdb native library");
-        } catch (UnsatisfiedLinkError ule) {
-            throw new GenomicsDBException("Could not load genomicsdb native library", ule);
-        }
-    }
 
     /**
      * Checks if GenomicsDB array exists.
