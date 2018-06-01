@@ -417,10 +417,6 @@ void VariantArrayInfo::update_row_bounds_in_array(
       + '/' + METADATA_FILE_PREFIX
       + '_' + uuid_str +  ".json";
 
-    if (is_file(m_tiledb_ctx, metadata_filepath)) {
-      delete_file(m_tiledb_ctx, metadata_filepath);
-    }
-    
     if (write_file(m_tiledb_ctx, metadata_filepath, buffer.GetString(), strlen(buffer.GetString()))) {
       throw VariantStorageManagerException(std::string("Could not write to metadata file ")+metadata_filepath
           +"\nTileDB error message : "+tiledb_errmsg);
