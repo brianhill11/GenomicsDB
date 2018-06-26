@@ -43,6 +43,12 @@ if(PROTOBUF_REGENERATE)
     set_source_files_properties(${PROTOBUF_GENERATED_CXX_SRCS} ${PROTOBUF_GENERATED_CXX_HDRS} PROPERTIES GENERATED True)
 endif()
 
+# C-API to facilitate Python/R bindings
+include_directories(capi/include)
+set(GenomicsDB_library_sources ${GenomicsDB_library_sources}
+    capi/src/genomicsdb_query_stream.cc
+    )
+
 if(BUILD_JAVA)
     set(GenomicsDB_library_sources ${GenomicsDB_library_sources}
         jni/src/genomicsdb_GenomicsDBUtils.cc
