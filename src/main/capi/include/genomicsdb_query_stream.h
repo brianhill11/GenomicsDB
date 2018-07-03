@@ -45,38 +45,38 @@ extern "C" {
   } gdb_config_t;
 
   /* C Interface to GenomicsDBBCFGenerator */
-  void *genomicsdb_connect(void *config);
+  void *genomicsdb_connect(void **config);
 
-  int genomicsdb_close(void *handle);
+  int genomicsdb_close(void **handle);
   
-  uint64_t genomicsdb_get_total_bytes_available(void *handle);
+  uint64_t genomicsdb_get_total_bytes_available(void **handle);
 
-  uint8_t genomicsdb_read_next_byte(void *handle);
+  uint8_t genomicsdb_read_next_byte(void **handle);
   
-  int genomicsdb_read(void *handle, uint8_t *byte_array, int offset, int n);
+  int genomicsdb_read(void **handle, uint8_t *byte_array, int offset, int n);
 
-  uint64_t genomicsdb_skip(void *handle, int n);
+  uint64_t genomicsdb_skip(void **handle, int n);
 
   /* Helpers to construct gdb_config_t to pass to GenomicsDBBCFGenerator */
   void *genomicsdb_create_config(const char *loader_config_file, const char *query_config_file, const char *chr, int start, int end);
 
-  void genomicsdb_print_config(void *config);
+  void genomicsdb_print_config(void **config);
 
-  void genomicsdb_config_set_rank(void *config, int rank);
+  void genomicsdb_config_set_rank(void **config, int rank);
 
-  void genomicsdb_config_set_buffer_capacity(void *config, uint64_t buffer_capacity);
+  void genomicsdb_config_set_buffer_capacity(void **config, uint64_t buffer_capacity);
 
-  void genomicsdb_config_set_segment_size(void *config, uint64_t segment_size);
+  void genomicsdb_config_set_segment_size(void **config, uint64_t segment_size);
 
-  void genomicsdb_config_set_is_bcf(void *config, int is_bcf);
+  void genomicsdb_config_set_is_bcf(void **config, int is_bcf);
 
-  void genomicsdb_config_set_produce_header_only(void *config, int produce_header_only);
+  void genomicsdb_config_set_produce_header_only(void **config, int produce_header_only);
 
-  void genomicsdb_config_set_use_missing_values_only_not_vector_end(void *config, int use_missing_values_only_not_vector_end);
+  void genomicsdb_config_set_use_missing_values_only_not_vector_end(void **config, int use_missing_values_only_not_vector_end);
 
-  void genomicsdb_config_set_keep_idx_fields_in_bcf_header(void *config, int keep_idx_fields_in_bcf_header);
+  void genomicsdb_config_set_keep_idx_fields_in_bcf_header(void **config, int keep_idx_fields_in_bcf_header);
 
-  void genomicsdb_config_delete(void *config);
+  void genomicsdb_config_delete(void **config);
 }
 
 #endif /* _GENOMICSDB_C_API_QUERY_STREAM_H_ */

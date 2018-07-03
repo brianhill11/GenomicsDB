@@ -29,55 +29,55 @@
 #define GET_GDB_CONFIG_FROM_PTR(X) (reinterpret_cast<gdb_config_t *>(static_cast<void *>(X)))
 #define GET_BCF_READER_FROM_HANDLE(X) (reinterpret_cast<GenomicsDBBCFGenerator*>(static_cast<void *>(X)))
 
-void *genomicsdb_connect(void *config) {
+void *genomicsdb_connect(void **config) {
   // Sanity Check
-  assert(GET_GDB_CONFIG_FROM_PTR(config)->loader_config_file && "Loader config file not specified");
-  assert(GET_GDB_CONFIG_FROM_PTR(config)->query_config_file && "Query config file not specified");
-  assert(GET_GDB_CONFIG_FROM_PTR(config)->chr && "chr not specified");
+  assert(GET_GDB_CONFIG_FROM_PTR(*config)->loader_config_file && "Loader config file not specified");
+  assert(GET_GDB_CONFIG_FROM_PTR(*config)->query_config_file && "Query config file not specified");
+  assert(GET_GDB_CONFIG_FROM_PTR(*config)->chr && "chr not specified");
   
   //Create object
-  auto output_format = GET_GDB_CONFIG_FROM_PTR(config)->is_bcf ? "bu" : "";
+  auto output_format = GET_GDB_CONFIG_FROM_PTR(*config)->is_bcf ? "bu" : "";
   GenomicsDBBCFGenerator *bcf_reader_obj = new GenomicsDBBCFGenerator(
-      GET_GDB_CONFIG_FROM_PTR(config)->loader_config_file,
-      GET_GDB_CONFIG_FROM_PTR(config)->query_config_file,
-      GET_GDB_CONFIG_FROM_PTR(config)->chr,
-      GET_GDB_CONFIG_FROM_PTR(config)->start,
-      GET_GDB_CONFIG_FROM_PTR(config)->end,
-      GET_GDB_CONFIG_FROM_PTR(config)->rank,
-      GET_GDB_CONFIG_FROM_PTR(config)->buffer_capacity,
-      GET_GDB_CONFIG_FROM_PTR(config)->segment_size,
+      GET_GDB_CONFIG_FROM_PTR(*config)->loader_config_file,
+      GET_GDB_CONFIG_FROM_PTR(*config)->query_config_file,
+      GET_GDB_CONFIG_FROM_PTR(*config)->chr,
+      GET_GDB_CONFIG_FROM_PTR(*config)->start,
+      GET_GDB_CONFIG_FROM_PTR(*config)->end,
+      GET_GDB_CONFIG_FROM_PTR(*config)->rank,
+      GET_GDB_CONFIG_FROM_PTR(*config)->buffer_capacity,
+      GET_GDB_CONFIG_FROM_PTR(*config)->segment_size,
       output_format,
-      GET_GDB_CONFIG_FROM_PTR(config)->produce_header_only,
-      GET_GDB_CONFIG_FROM_PTR(config)->is_bcf && GET_GDB_CONFIG_FROM_PTR(config)->use_missing_values_only_not_vector_end,
-      GET_GDB_CONFIG_FROM_PTR(config)->is_bcf &&  GET_GDB_CONFIG_FROM_PTR(config)->keep_idx_fields_in_bcf_header);
+      GET_GDB_CONFIG_FROM_PTR(*config)->produce_header_only,
+      GET_GDB_CONFIG_FROM_PTR(*config)->is_bcf && GET_GDB_CONFIG_FROM_PTR(*config)->use_missing_values_only_not_vector_end,
+      GET_GDB_CONFIG_FROM_PTR(*config)->is_bcf &&  GET_GDB_CONFIG_FROM_PTR(*config)->keep_idx_fields_in_bcf_header);
 
   //Cast pointer to void * and return
   return static_cast<void *>(bcf_reader_obj);
 }
 
-int genomicsdb_close(void *handle)
+int genomicsdb_close(void **handle)
 {
-  auto bcf_reader_obj = GET_BCF_READER_FROM_HANDLE(handle);
+  auto bcf_reader_obj = GET_BCF_READER_FROM_HANDLE(*handle);
   if (bcf_reader_obj) //not NULL
     delete bcf_reader_obj;
   return 0;
 }
 
-uint64_t genomicsdb_get_total_bytes_available(void *handle)
+uint64_t genomicsdb_get_total_bytes_available(void **handle)
 {
-  auto bcf_reader_obj = GET_BCF_READER_FROM_HANDLE(handle);
+  auto bcf_reader_obj = GET_BCF_READER_FROM_HANDLE(*handle);
   return (bcf_reader_obj) ? bcf_reader_obj->get_buffer_capacity() : 0;
 }
 
-uint8_t genomicsdb_read_next_byte(void *handle)
+uint8_t genomicsdb_read_next_byte(void **handle)
 {
-  auto bcf_reader_obj = GET_BCF_READER_FROM_HANDLE(handle);
+  auto bcf_reader_obj = GET_BCF_READER_FROM_HANDLE(*handle);
   return (bcf_reader_obj) ? bcf_reader_obj->read_next_byte() : -1;
 }
 
-int genomicsdb_read(void *handle, uint8_t *byte_array, uint64_t offset, uint64_t n)
+int genomicsdb_read(void **handle, uint8_t *byte_array, uint64_t offset, uint64_t n)
 {
-  auto bcf_reader_obj = GET_BCF_READER_FROM_HANDLE(handle);
+  auto bcf_reader_obj = GET_BCF_READER_FROM_HANDLE(*handle);
   if(bcf_reader_obj == 0)
     return 0;
   
@@ -97,9 +97,9 @@ int genomicsdb_read(void *handle, uint8_t *byte_array, uint64_t offset, uint64_t
   return total_num_bytes_read;
 }
 
-uint64_t genomicsdb_skip(void *handle, long n)
+uint64_t genomicsdb_skip(void **handle, long n)
 {
-  auto bcf_reader_obj = GET_BCF_READER_FROM_HANDLE(handle);
+  auto bcf_reader_obj = GET_BCF_READER_FROM_HANDLE(*handle);
   return (bcf_reader_obj) ? bcf_reader_obj->read_and_advance(0, 0, n) : 0;
 }
 
@@ -116,67 +116,67 @@ void *genomicsdb_create_config(const char *loader_config_file, const char *query
   return static_cast<void *>(gdb_config);
 }
 
-void genomicsdb_print_config(void *config) {
+void genomicsdb_print_config(void **config) {
   if (config != NULL) {
-    std::cout << "loader config = " << GET_GDB_CONFIG_FROM_PTR(config)->loader_config_file << std::endl;
-    std::cout << "query config = " << GET_GDB_CONFIG_FROM_PTR(config)->query_config_file << std::endl;
-    std::cout << "chr = " << GET_GDB_CONFIG_FROM_PTR(config)->chr << std::endl;
-    std::cout << "start = " << GET_GDB_CONFIG_FROM_PTR(config)->start << std::endl;
-    std::cout << "end =" << GET_GDB_CONFIG_FROM_PTR(config)->end << std::endl;
-    std::cout << "rank =" << GET_GDB_CONFIG_FROM_PTR(config)->rank << std::endl;
-    std::cout << "buffer capacity = " << GET_GDB_CONFIG_FROM_PTR(config)->buffer_capacity << std::endl;
-    std::cout << "segment_size = " << GET_GDB_CONFIG_FROM_PTR(config)->segment_size << std::endl;
-    std::cout << "is_bcf = " << GET_GDB_CONFIG_FROM_PTR(config)->is_bcf << std::endl;
-    std::cout << "produce_header_only = " << GET_GDB_CONFIG_FROM_PTR(config)->produce_header_only << std::endl;
-    std::cout << "use_missing_values_only_not_vector_end = " << GET_GDB_CONFIG_FROM_PTR(config)->use_missing_values_only_not_vector_end << std::endl;
-    std::cout << "keep_idx_fields_in_bcf_header = " << GET_GDB_CONFIG_FROM_PTR(config)->keep_idx_fields_in_bcf_header << std::endl;
+    std::cout << "loader config = " << GET_GDB_CONFIG_FROM_PTR(*config)->loader_config_file << std::endl;
+    std::cout << "query config = " << GET_GDB_CONFIG_FROM_PTR(*config)->query_config_file << std::endl;
+    std::cout << "chr = " << GET_GDB_CONFIG_FROM_PTR(*config)->chr << std::endl;
+    std::cout << "start = " << GET_GDB_CONFIG_FROM_PTR(*config)->start << std::endl;
+    std::cout << "end =" << GET_GDB_CONFIG_FROM_PTR(*config)->end << std::endl;
+    std::cout << "rank =" << GET_GDB_CONFIG_FROM_PTR(*config)->rank << std::endl;
+    std::cout << "buffer capacity = " << GET_GDB_CONFIG_FROM_PTR(*config)->buffer_capacity << std::endl;
+    std::cout << "segment_size = " << GET_GDB_CONFIG_FROM_PTR(*config)->segment_size << std::endl;
+    std::cout << "is_bcf = " << GET_GDB_CONFIG_FROM_PTR(*config)->is_bcf << std::endl;
+    std::cout << "produce_header_only = " << GET_GDB_CONFIG_FROM_PTR(*config)->produce_header_only << std::endl;
+    std::cout << "use_missing_values_only_not_vector_end = " << GET_GDB_CONFIG_FROM_PTR(*config)->use_missing_values_only_not_vector_end << std::endl;
+    std::cout << "keep_idx_fields_in_bcf_header = " << GET_GDB_CONFIG_FROM_PTR(*config)->keep_idx_fields_in_bcf_header << std::endl;
   }
 }
 
-void genomicsdb_config_set_rank(void *config, int rank) {
-  if (config != NULL) {
-    GET_GDB_CONFIG_FROM_PTR(config)->rank = rank;
+void genomicsdb_config_set_rank(void **config, int rank) {
+  if (*config != NULL) {
+    GET_GDB_CONFIG_FROM_PTR(*config)->rank = rank;
   }
 }
 
-void genomicsdb_config_set_buffer_capacity(void *config, uint64_t buffer_capacity) {
-  if (config != NULL) {
-    GET_GDB_CONFIG_FROM_PTR(config)->buffer_capacity = buffer_capacity;
+void genomicsdb_config_set_buffer_capacity(void **config, uint64_t buffer_capacity) {
+  if (*config != NULL) {
+    GET_GDB_CONFIG_FROM_PTR(*config)->buffer_capacity = buffer_capacity;
   }
 }
         
-void genomicsdb_config_set_segment_size(void *config, uint64_t segment_size) {
-  if (config != NULL) {
-    GET_GDB_CONFIG_FROM_PTR(config)->segment_size = segment_size;
+void genomicsdb_config_set_segment_size(void **config, uint64_t segment_size) {
+  if (*config != NULL) {
+    GET_GDB_CONFIG_FROM_PTR(*config)->segment_size = segment_size;
   }
 }
 
-void genomicsdb_config_set_is_bcf(void *config, int is_bcf) {
-  if (config != NULL) {
-    GET_GDB_CONFIG_FROM_PTR(config)->is_bcf = is_bcf;
+void genomicsdb_config_set_is_bcf(void **config, int is_bcf) {
+  if (*config != NULL) {
+    GET_GDB_CONFIG_FROM_PTR(*config)->is_bcf = is_bcf;
   }
 }
 
-void genomicsdb_config_set_produce_header_only(void *config, int produce_header_only) {
-  if (config != NULL) {
-    GET_GDB_CONFIG_FROM_PTR(config)->produce_header_only = produce_header_only;
+void genomicsdb_config_set_produce_header_only(void **config, int produce_header_only) {
+  if (*config != NULL) {
+    GET_GDB_CONFIG_FROM_PTR(*config)->produce_header_only = produce_header_only;
   }
 }
 
-void genomicsdb_config_set_use_missing_values_only_not_vector_end(void *config, int use_missing_values_only_not_vector_end) {
-  if (config != NULL) {
-    GET_GDB_CONFIG_FROM_PTR(config)->use_missing_values_only_not_vector_end = use_missing_values_only_not_vector_end;
+void genomicsdb_config_set_use_missing_values_only_not_vector_end(void **config, int use_missing_values_only_not_vector_end) {
+  if (*config != NULL) {
+    GET_GDB_CONFIG_FROM_PTR(*config)->use_missing_values_only_not_vector_end = use_missing_values_only_not_vector_end;
   }
 }
 
-void genomicsdb_config_set_keep_idx_fields_in_bcf_header(void *config, int keep_idx_fields_in_bcf_header) {
-  if (config != NULL) {
-    GET_GDB_CONFIG_FROM_PTR(config)-> keep_idx_fields_in_bcf_header =  keep_idx_fields_in_bcf_header;
+void genomicsdb_config_set_keep_idx_fields_in_bcf_header(void **config, int keep_idx_fields_in_bcf_header) {
+  if (*config != NULL) {
+    GET_GDB_CONFIG_FROM_PTR(*config)-> keep_idx_fields_in_bcf_header =  keep_idx_fields_in_bcf_header;
   }
 }
 
-void genomicsdb_config_delete(void *config) {
-  if (config != NULL) {
-    delete GET_GDB_CONFIG_FROM_PTR(config);
+void genomicsdb_config_delete(void **config) {
+  if (*config != NULL) {
+    delete GET_GDB_CONFIG_FROM_PTR(*config);
   }
 }
