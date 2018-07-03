@@ -53,9 +53,9 @@ extern "C" {
 
   uint8_t genomicsdb_read_next_byte(void **handle);
   
-  int genomicsdb_read(void **handle, uint8_t *byte_array, int offset, int n);
+  int genomicsdb_read(void **handle, uint8_t *byte_array, uint64_t offset, uint64_t n);
 
-  uint64_t genomicsdb_skip(void **handle, int n);
+  uint64_t genomicsdb_skip(void **handle, long n);
 
   /* Helpers to construct gdb_config_t to pass to GenomicsDBBCFGenerator */
   void *genomicsdb_create_config(const char *loader_config_file, const char *query_config_file, const char *chr, int start, int end);
