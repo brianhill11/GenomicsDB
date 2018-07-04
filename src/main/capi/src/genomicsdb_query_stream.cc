@@ -122,8 +122,8 @@ void genomicsdb_print_config(void **config) {
     std::cout << "query config = " << GET_GDB_CONFIG_FROM_PTR(*config)->query_config_file << std::endl;
     std::cout << "chr = " << GET_GDB_CONFIG_FROM_PTR(*config)->chr << std::endl;
     std::cout << "start = " << GET_GDB_CONFIG_FROM_PTR(*config)->start << std::endl;
-    std::cout << "end =" << GET_GDB_CONFIG_FROM_PTR(*config)->end << std::endl;
-    std::cout << "rank =" << GET_GDB_CONFIG_FROM_PTR(*config)->rank << std::endl;
+    std::cout << "end = " << GET_GDB_CONFIG_FROM_PTR(*config)->end << std::endl;
+    std::cout << "rank = " << GET_GDB_CONFIG_FROM_PTR(*config)->rank << std::endl;
     std::cout << "buffer capacity = " << GET_GDB_CONFIG_FROM_PTR(*config)->buffer_capacity << std::endl;
     std::cout << "segment_size = " << GET_GDB_CONFIG_FROM_PTR(*config)->segment_size << std::endl;
     std::cout << "is_bcf = " << GET_GDB_CONFIG_FROM_PTR(*config)->is_bcf << std::endl;
