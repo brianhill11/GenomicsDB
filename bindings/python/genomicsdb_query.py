@@ -70,4 +70,4 @@ def read(handle, byte_array, offset, n):
 
 def skip(handle, n):
     gdb_dll.genomicsdb_skip.restype = c_uint64
-    return gdb_dll.genomicsdb_skip(byref(c_void_p(handle)), c_int(n))
+    return gdb_dll.genomicsdb_skip(byref(c_void_p(handle)), c_long(n))
